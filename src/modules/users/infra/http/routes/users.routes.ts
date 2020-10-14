@@ -1,10 +1,8 @@
-import { Router, request, response } from 'express';
+import { Router } from 'express';
+import { celebrate, Segments, Joi } from 'celebrate';
 import multer from 'multer';
-import CreateUserService from '@modules/users/services/CreateUserService';
-import UpdateUserAvatarService from '@modules/users/services/UpdateUserAvatarService';
 import ensureAuthenticated from '../middlewares/ensureAuthenticated';
 import uploadConfig from '@config/upload';
-import { container } from 'tsyringe';
 import UsersController from '../controllers/UsersController';
 import UserAvatarController from '../controllers/UserAvatarController';
 
@@ -16,7 +14,13 @@ const userAvatarController = new UserAvatarController();
 
 // Rota: Receber requisição, chamar outro arquivo, devolver uma resposta
 
-usersRouter.post('/', usersController.create);
+usersRouter.post('/', celebrate({
+    [Segments.BODY]: {
+        name: Joi.string().required(),
+        email: Joi.string().email().required(),
+        password: Joi.string().required(),
+    }
+}), usersController.create);
 
 usersRouter.patch('/avatar', ensureAuthenticated, upload.single('avatar'), userAvatarController.update)
 
